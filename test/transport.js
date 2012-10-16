@@ -65,7 +65,23 @@ describe('Transport', function () {
         , timestampParam: 't'
         , timestampRequests: true
       });
-      expect(polling.uri()).to.match(/http:\/\/localhost\/engine\.io\?t=[0-9]+/);
+      polling.addTimestamp = function(q) { q.t = 12345; return q; };
+      
+      expect(polling.uri()).to.be('http://localhost/engine.io?t=12345');
+    });
+
+    it('should generate timestamped uri if needsCacheBusting returns true', function () {
+      // setup
+      var polling = new eio.transports.polling({
+          path: '/engine.io'
+        , host: 'localhost'
+        , timestampParam: 't'
+      });
+      
+      polling.needsCacheBusting = function() { return true; };
+      polling.addTimestamp = function(q) { q[this.timestampParam] = 12345; };
+      
+      expect(polling.uri()).to.be('http://localhost/engine.io?t=12345');
     });
 
     it('should generate a ws uri', function () {
